@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getCategories, getProducts, getOrders } from "@/api/services";
 import { Category, Product, Order } from "@/types";
-import { useLanguage } from "@/context/languageContext";
+import { useLanguage } from "@/context/ContextLanguage";
 
 function StatCard({
   label,

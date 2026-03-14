@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/context/languageContext";
+import { useLanguage } from "@/context/ContextLanguage";
 
 export default function Sidebar() {
   const pathname = usePathname();

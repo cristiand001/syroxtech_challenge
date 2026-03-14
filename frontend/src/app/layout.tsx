@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { LanguageProvider } from "@/context/languageContext";
+import { LanguageProvider } from "@/context/ContextLanguage";
 
 export const metadata: Metadata = {
   title: "Ecommerce Admin",

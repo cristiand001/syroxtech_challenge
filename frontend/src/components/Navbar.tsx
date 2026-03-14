@@ -1,7 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useLanguage } from "@/context/languageContext";
+import { useLanguage } from "@/context/ContextLanguage";
 
 function getEmailFromToken(): string {
   try {
