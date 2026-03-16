@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Plus, Eye, Trash2, Loader2, Package, X } from "lucide-react";
+import { Plus, Eye, Trash2, Loader2, Package, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,8 +71,10 @@ export default function OrdersPage() {
   const { t } = useLanguage();
   const { toasts, toast, dismiss } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [filtered, setFiltered] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [modal, setModal] = useState<"create" | "detail" | "delete" | null>(
     null,
   );
@@ -86,10 +88,12 @@ export default function OrdersPage() {
   const [statusNote, setStatusNote] = useState("");
   const [paymentStatusUpdate, setPaymentStatusUpdate] = useState("");
   const [trackingUpdate, setTrackingUpdate] = useState("");
+
   const load = () =>
     Promise.all([getOrders(), getProducts()])
       .then(([o, p]) => {
         setOrders(o);
+        setFiltered(o);
         setProducts(p);
       })
       .finally(() => setLoading(false));
@@ -97,6 +101,18 @@ export default function OrdersPage() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    const q = search.toLowerCase();
+    setFiltered(
+      orders.filter(
+        (o) =>
+          o.customerName.toLowerCase().includes(q) ||
+          o.customerEmail.toLowerCase().includes(q) ||
+          o.orderNumber.toLowerCase().includes(q),
+      ),
+    );
+  }, [search, orders]);
 
   const openCreate = () => {
     setForm(EMPTY_FORM);
@@ -121,7 +137,6 @@ export default function OrdersPage() {
     setModal(null);
     setSelected(null);
   };
-
   const setF = (key: keyof OrderForm) => (val: string) =>
     setForm((f) => ({ ...f, [key]: val }));
 
@@ -274,6 +289,29 @@ export default function OrdersPage() {
         </Button>
       </div>
 
+      {/* Search */}
+      <Card className="p-3">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              placeholder={t.searchOrders}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {search && (
+            <Button variant="outline" size="sm" onClick={() => setSearch("")}>
+              <X className="h-4 w-4" /> {t.clear}
+            </Button>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          {t.showing(filtered.length, orders.length)}
+        </p>
+      </Card>
+
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -299,7 +337,7 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {orders.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
                   <td
                     colSpan={8}
@@ -309,7 +347,7 @@ export default function OrdersPage() {
                   </td>
                 </tr>
               ) : (
-                orders.map((o) => (
+                filtered.map((o) => (
                   <tr
                     key={o.id}
                     className="border-b border-border/50 hover:bg-muted/20 transition-colors"
@@ -394,7 +432,6 @@ export default function OrdersPage() {
             <DialogTitle>{t.newOrder}</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 py-2">
-            {/* Customer Info */}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                 {t.customerInfo}
@@ -433,7 +470,6 @@ export default function OrdersPage() {
               </div>
             </div>
 
-            {/* Payment */}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                 {t.paymentInfo}
@@ -478,7 +514,6 @@ export default function OrdersPage() {
               </div>
             </div>
 
-            {/* Products */}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                 {t.products}
@@ -547,7 +582,6 @@ export default function OrdersPage() {
               </div>
             </div>
 
-            {/* Notes */}
             <div className="space-y-1.5">
               <Label>{t.noteOptional}</Label>
               <Input
@@ -568,7 +602,7 @@ export default function OrdersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Detail / Manage Modal */}
+      {/* Detail Modal */}
       <Dialog open={modal === "detail"} onOpenChange={close}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -578,7 +612,6 @@ export default function OrdersPage() {
           </DialogHeader>
           {selected && (
             <div className="space-y-5 py-2">
-              {/* Current Status */}
               <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3">
                 <Package className="h-4 w-4 text-muted-foreground" />
                 <div>
@@ -595,7 +628,6 @@ export default function OrdersPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Customer Info */}
                 <div className="rounded-lg border border-border p-4 space-y-2">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     {t.customerInfo}
@@ -610,8 +642,6 @@ export default function OrdersPage() {
                     </p>
                   )}
                 </div>
-
-                {/* Payment Info */}
                 <div className="rounded-lg border border-border p-4 space-y-2">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     {t.paymentInfo}
@@ -636,7 +666,6 @@ export default function OrdersPage() {
                 </div>
               </div>
 
-              {/* Shipment Info */}
               <div className="rounded-lg border border-border p-4 space-y-2">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   {t.shipmentInfo}
@@ -655,7 +684,6 @@ export default function OrdersPage() {
                 )}
               </div>
 
-              {/* Items */}
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   {t.items}
@@ -690,7 +718,6 @@ export default function OrdersPage() {
                 ))}
               </div>
 
-              {/* History */}
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   {t.orderHistory}
@@ -720,7 +747,6 @@ export default function OrdersPage() {
                 )}
               </div>
 
-              {/* Update Status */}
               <div className="rounded-lg border border-border p-4 space-y-3">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   {t.availableActions}

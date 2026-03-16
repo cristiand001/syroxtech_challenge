@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/context/ContextLanguage";
 
-export const metadata: Metadata = {
-  title: "Ecommerce Admin",
-  description: "Admin panel for ecommerce management",
+export const metadata = {
+  title: "SyroxTech",
+  description: "Admin Panel",
+  icons: {
+    icon: "/favicon-32x32.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
