@@ -75,6 +75,7 @@ export default function OrdersPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [modal, setModal] = useState<"create" | "detail" | "delete" | null>(
     null,
   );
@@ -105,14 +106,16 @@ export default function OrdersPage() {
   useEffect(() => {
     const q = search.toLowerCase();
     setFiltered(
-      orders.filter(
-        (o) =>
+      orders.filter((o) => {
+        const matchSearch =
           o.customerName.toLowerCase().includes(q) ||
           o.customerEmail.toLowerCase().includes(q) ||
-          o.orderNumber.toLowerCase().includes(q),
-      ),
+          o.orderNumber.toLowerCase().includes(q);
+        const matchStatus = statusFilter === "ALL" || o.status === statusFilter;
+        return matchSearch && matchStatus;
+      }),
     );
-  }, [search, orders]);
+  }, [search, statusFilter, orders]);
 
   const openCreate = () => {
     setForm(EMPTY_FORM);
@@ -301,8 +304,27 @@ export default function OrdersPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {search && (
-            <Button variant="outline" size="sm" onClick={() => setSearch("")}>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">{t.allStatuses}</SelectItem>
+              <SelectItem value="PREPARING">{t.statusPreparing}</SelectItem>
+              <SelectItem value="SHIPPED">{t.statusShipped}</SelectItem>
+              <SelectItem value="COMPLETED">{t.statusCompleted}</SelectItem>
+              <SelectItem value="CANCELLED">{t.statusCancelled}</SelectItem>
+            </SelectContent>
+          </Select>
+          {(search || statusFilter !== "ALL") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSearch("");
+                setStatusFilter("ALL");
+              }}
+            >
               <X className="h-4 w-4" /> {t.clear}
             </Button>
           )}
