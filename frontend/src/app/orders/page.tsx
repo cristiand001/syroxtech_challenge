@@ -239,6 +239,23 @@ export default function OrdersPage() {
       });
       return;
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.customerEmail)) {
+      toast({
+        title: t.invalidEmail,
+        description: t.invalidEmailDesc,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!form.customerPhone.trim()) {
+      toast({
+        title: t.fieldRequired,
+        description: t.phoneRequired,
+        variant: "destructive",
+      });
+      return;
+    }
     if (!form.address.trim()) {
       toast({
         title: t.fieldRequired,
