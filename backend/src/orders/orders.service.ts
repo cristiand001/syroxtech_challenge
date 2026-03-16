@@ -112,23 +112,42 @@ export class OrdersService {
     const order = await this.findOne(id);
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      // Si cambió el estado, agregar al historial
+      // Si cancela la orden devolver stock
+      if (dto.status === "CANCELLED" && order.status !== "CANCELLED") {
+        for (const item of order.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      }
+
+      // Si reactiva una orden cancelada descontar stock de nuevo
+      if (
+        order.status === "CANCELLED" &&
+        dto.status &&
+        dto.status !== "CANCELLED"
+      ) {
+        for (const item of order.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
+      }
+
       if (dto.status && dto.status !== order.status) {
         await tx.orderHistory.create({
-          data: {
-            orderId: id,
-            status: dto.status,
-            note: dto.note,
-          },
+          data: { orderId: id, status: dto.status as any, note: dto.note },
         });
       }
 
       return tx.order.update({
         where: { id },
         data: {
-          status: dto.status,
-          paymentMethod: dto.paymentMethod,
-          paymentStatus: dto.paymentStatus,
+          status: dto.status as any,
+          paymentMethod: dto.paymentMethod as any,
+          paymentStatus: dto.paymentStatus as any,
           trackingNumber: dto.trackingNumber,
           address: dto.address,
           notes: dto.notes,
@@ -144,7 +163,22 @@ export class OrdersService {
   }
 
   async remove(id: number) {
-    await this.findOne(id);
-    return this.prisma.order.delete({ where: { id } });
+    const order = await this.findOne(id);
+
+    await this.prisma.$transaction(async (tx) => {
+      // Solo devolver stock si no estaba cancelada
+      if (order.status !== "CANCELLED") {
+        for (const item of order.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      }
+
+      await tx.order.delete({ where: { id } });
+    });
+
+    return { message: "Order deleted" };
   }
 }
