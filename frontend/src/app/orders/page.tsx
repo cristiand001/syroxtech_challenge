@@ -239,6 +239,14 @@ export default function OrdersPage() {
       });
       return;
     }
+    if (!form.address.trim()) {
+      toast({
+        title: t.fieldRequired,
+        description: t.addressRequired,
+        variant: "destructive",
+      });
+      return;
+    }
     if (items.some((i) => !i.productId)) {
       toast({
         title: t.productRequired,
@@ -255,6 +263,7 @@ export default function OrdersPage() {
       });
       return;
     }
+
     setSaving(true);
     try {
       await createOrder({ ...form, items });
