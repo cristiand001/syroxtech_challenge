@@ -6,6 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { getCategories, getProducts, getOrders } from "@/api/services";
 import { Category, Product, Order } from "@/types";
 import { useLanguage } from "@/context/ContextLanguage";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 function StatCard({
   label,
@@ -61,6 +70,22 @@ export default function DashboardPage() {
 
   const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
 
+  const chartData = orders.reduce(
+    (acc, o) => {
+      const date = new Date(o.createdAt).toLocaleDateString("es", {
+        day: "2-digit",
+        month: "2-digit",
+      });
+      const existing = acc.find((d) => d.date === date);
+      if (existing) {
+        existing.total += o.total;
+        existing.orders += 1;
+      } else acc.push({ date, total: o.total, orders: 1 });
+      return acc;
+    },
+    [] as { date: string; total: number; orders: number }[],
+  );
+
   const getStatusLabel = (s: string) =>
     ({
       PREPARING: t.statusPreparing,
@@ -102,6 +127,59 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Gráfico */}
+      <Card>
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base">{t.revenueOverTime}</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {chartData.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              {t.noOrders}
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{ color: "hsl(var(--foreground))" }}
+                  formatter={(val: number) => [`$${val.toFixed(2)}`, t.revenue]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#7c3aed"
+                  fill="url(#colorTotal)"
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Tabla órdenes recientes */}
       <Card>
         <CardHeader className="border-b border-border">
           <div className="flex items-center justify-between">
