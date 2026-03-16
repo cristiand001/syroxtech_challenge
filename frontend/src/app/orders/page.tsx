@@ -40,6 +40,7 @@ import {
 import { useToast } from "@/hooks/useToast";
 import { Order, Product, OrderStatus } from "@/types";
 import { useLanguage } from "@/context/ContextLanguage";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface OrderForm {
   customerName: string;
@@ -941,8 +942,52 @@ export default function OrdersPage() {
 
 function Loader() {
   return (
-    <div className="flex h-64 items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-32" />
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-28" />
+          <Skeleton className="h-9 w-36" />
+        </div>
+      </div>
+      <div className="rounded-xl border border-border p-3 space-y-2">
+        <div className="flex gap-2">
+          <Skeleton className="h-9 flex-1" />
+          <Skeleton className="h-9 w-[180px]" />
+        </div>
+        <Skeleton className="h-3 w-32" />
+      </div>
+      <div className="rounded-xl border border-border overflow-hidden">
+        <div className="border-b border-border bg-muted/30 px-5 py-3 flex gap-8">
+          {[...Array(8)].map((_, i) => (
+            <Skeleton key={i} className="h-3 w-16" />
+          ))}
+        </div>
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="border-b border-border/50 px-5 py-4 flex gap-8 items-center"
+          >
+            <div className="space-y-1.5">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+            <Skeleton className="h-6 w-24 rounded-full" />
+            <Skeleton className="h-6 w-16 rounded-full" />
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-6 w-16 rounded-full" />
+            <Skeleton className="h-3 w-16" />
+            <div className="flex gap-2 ml-auto">
+              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-8 w-8" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
