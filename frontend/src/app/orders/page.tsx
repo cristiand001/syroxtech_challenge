@@ -1,6 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Plus, Eye, Trash2, Loader2, Package, X, Search } from "lucide-react";
+import {
+  Plus,
+  Eye,
+  Trash2,
+  Loader2,
+  Package,
+  X,
+  Search,
+  Download,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -180,7 +189,38 @@ export default function OrdersPage() {
       PENDING: t.paymentPending,
       FAILED: t.paymentFailed,
     })[s] ?? s;
-
+  const exportCSV = () => {
+    const headers = [
+      "Orden",
+      "Cliente",
+      "Email",
+      "Teléfono",
+      "Estado",
+      "Pago",
+      "Total",
+      "Tracking",
+      "Fecha",
+    ];
+    const rows = filtered.map((o) => [
+      o.orderNumber.slice(-8).toUpperCase(),
+      o.customerName,
+      o.customerEmail,
+      o.customerPhone ?? "",
+      getStatusLabel(o.status),
+      getPaymentStatusLabel(o.paymentStatus),
+      `$${o.total.toFixed(2)}`,
+      o.trackingNumber ?? "",
+      new Date(o.createdAt).toLocaleDateString(),
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ordenes-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   const handleCreate = async () => {
     if (!form.customerName.trim()) {
       toast({
@@ -287,9 +327,23 @@ export default function OrdersPage() {
         <p className="text-sm text-muted-foreground">
           {t.ordersTotal(orders.length)}
         </p>
-        <Button size="sm" onClick={openCreate} disabled={products.length === 0}>
-          <Plus className="h-4 w-4" /> {t.newOrder}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCSV}
+            disabled={filtered.length === 0}
+          >
+            <Download className="h-4 w-4" /> {t.exportCSV}
+          </Button>
+          <Button
+            size="sm"
+            onClick={openCreate}
+            disabled={products.length === 0}
+          >
+            <Plus className="h-4 w-4" /> {t.newOrder}
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
